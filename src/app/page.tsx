@@ -3,6 +3,8 @@ import { createSupabaseClient, type Post } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+type PostWithCount = Post & { comments: { count: number }[] };
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ko-KR", {
     year: "numeric",
@@ -18,10 +20,10 @@ export default async function HomePage() {
   const supabase = createSupabaseClient();
   const { data, error } = await supabase
     .from("posts")
-    .select("*")
+    .select("*, comments(count)")
     .order("created_at", { ascending: false });
 
-  const posts = (data ?? []) as Post[];
+  const posts = (data ?? []) as PostWithCount[];
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-12">
@@ -60,22 +62,29 @@ export default async function HomePage() {
         )}
 
         {posts.map((post) => (
-          <li
-            key={post.id}
-            className="rounded-lg border border-border bg-card px-5 py-4"
-          >
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <span className="rounded bg-background px-2 py-0.5 font-medium">
-                {post.category}
-              </span>
-              <span>{post.author}</span>
-              <span>·</span>
-              <time dateTime={post.created_at}>{formatDate(post.created_at)}</time>
-            </div>
-            <h2 className="mt-2 text-base font-semibold">{post.title}</h2>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">
-              {post.content}
-            </p>
+          <li key={post.id}>
+            <Link
+              href={`/post/${post.id}`}
+              className="block rounded-lg border border-border bg-card px-5 py-4 transition-colors hover:border-accent"
+            >
+              <div className="flex items-center gap-2 text-xs text-muted">
+                <span className="rounded bg-background px-2 py-0.5 font-medium">
+                  {post.category}
+                </span>
+                <span>{post.author}</span>
+                <span>·</span>
+                <time dateTime={post.created_at}>
+                  {formatDate(post.created_at)}
+                </time>
+              </div>
+              <h2 className="mt-2 text-base font-semibold">{post.title}</h2>
+              <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm text-foreground/80">
+                {post.content}
+              </p>
+              <p className="mt-2 text-xs text-muted">
+                댓글 {post.comments[0]?.count ?? 0}
+              </p>
+            </Link>
           </li>
         ))}
       </ul>
