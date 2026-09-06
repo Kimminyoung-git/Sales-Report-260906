@@ -3,23 +3,41 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { usePosts } from "../posts-context";
+import { createSupabaseClient } from "@/lib/supabase";
 
 const CATEGORY = "매출";
+const supabase = createSupabaseClient();
 
 export default function WritePage() {
   const router = useRouter();
-  const { addPost } = usePosts();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = title.trim() !== "" && content.trim() !== "";
+  const canSubmit = title.trim() !== "" && content.trim() !== "" && !submitting;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    addPost({ title: title.trim(), content: content.trim(), category: CATEGORY });
+    setSubmitting(true);
+    setError(null);
+
+    // 작성자(author)는 전송하지 않음 → DB 기본값 '익명'으로 저장됨
+    const { error } = await supabase.from("posts").insert({
+      title: title.trim(),
+      content: content.trim(),
+      category: CATEGORY,
+    });
+
+    if (error) {
+      setError(error.message);
+      setSubmitting(false);
+      return;
+    }
+
     router.push("/");
+    router.refresh();
   }
 
   return (
@@ -30,8 +48,7 @@ export default function WritePage() {
         </Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">글쓰기</h1>
         <p className="mt-2 text-sm text-muted">
-          작성자는 익명으로 저장됩니다. (현재는 저장되지 않고 새로고침 시
-          초기화됩니다.)
+          작성자는 익명으로 저장됩니다.
         </p>
       </header>
 
@@ -72,13 +89,19 @@ export default function WritePage() {
           />
         </div>
 
+        {error && (
+          <p className="rounded-md border border-border bg-card px-3 py-2 text-sm text-red-600">
+            저장에 실패했습니다: {error}
+          </p>
+        )}
+
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={!canSubmit}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            등록
+            {submitting ? "등록 중…" : "등록"}
           </button>
           <Link
             href="/"

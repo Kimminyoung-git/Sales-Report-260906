@@ -1,7 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import { usePosts } from "./posts-context";
+import { createSupabaseClient, type Post } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ko-KR", {
@@ -14,8 +14,14 @@ function formatDate(iso: string) {
   });
 }
 
-export default function HomePage() {
-  const { posts } = usePosts();
+export default async function HomePage() {
+  const supabase = createSupabaseClient();
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const posts = (data ?? []) as Post[];
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-12">
@@ -40,8 +46,14 @@ export default function HomePage() {
         </Link>
       </div>
 
+      {error && (
+        <p className="mb-4 rounded-md border border-border bg-card px-4 py-3 text-sm text-red-600">
+          목록을 불러오지 못했습니다: {error.message}
+        </p>
+      )}
+
       <ul className="flex flex-col gap-3">
-        {posts.length === 0 && (
+        {!error && posts.length === 0 && (
           <li className="rounded-lg border border-border bg-card px-5 py-10 text-center text-sm text-muted">
             아직 게시글이 없습니다. 첫 글을 남겨보세요.
           </li>
@@ -58,7 +70,7 @@ export default function HomePage() {
               </span>
               <span>{post.author}</span>
               <span>·</span>
-              <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+              <time dateTime={post.created_at}>{formatDate(post.created_at)}</time>
             </div>
             <h2 className="mt-2 text-base font-semibold">{post.title}</h2>
             <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">
