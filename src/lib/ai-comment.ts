@@ -1,4 +1,5 @@
-const MODEL = process.env.GEMINI_MODEL ?? "gemini-3.5-flash";
+// 모델은 gemini-3.5-flash로 고정
+const MODEL = "gemini-3.5-flash";
 
 const SYSTEM_PROMPT =
   "당신은 '매출 정보' 게시판의 AI 도우미입니다. 새로 올라온 게시글을 읽고 한국어로 2~3문장의 짧고 담백한 댓글을 답니다. " +
