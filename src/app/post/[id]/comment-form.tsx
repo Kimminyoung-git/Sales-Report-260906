@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase";
 
-const supabase = createSupabaseClient();
-
 export default function CommentForm({ postId }: { postId: number }) {
   const router = useRouter();
   const [content, setContent] = useState("");
@@ -20,6 +18,7 @@ export default function CommentForm({ postId }: { postId: number }) {
     setSubmitting(true);
     setError(null);
 
+    const supabase = createSupabaseClient();
     // 작성자(author)는 전송하지 않음 → DB 기본값 '익명'으로 저장됨
     const { error } = await supabase.from("comments").insert({
       post_id: postId,

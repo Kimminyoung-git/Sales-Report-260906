@@ -6,7 +6,6 @@ import { useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase";
 
 const CATEGORY = "매출";
-const supabase = createSupabaseClient();
 
 export default function WritePage() {
   const router = useRouter();
@@ -23,6 +22,7 @@ export default function WritePage() {
     setSubmitting(true);
     setError(null);
 
+    const supabase = createSupabaseClient();
     // 작성자(author)는 전송하지 않음 → DB 기본값 '익명'으로 저장됨
     const { error } = await supabase.from("posts").insert({
       title: title.trim(),
