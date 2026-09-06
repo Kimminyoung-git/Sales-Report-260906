@@ -69,23 +69,34 @@ export default async function PostPage({ params }: PageProps<"/post/[id]">) {
           {comments.length === 0 && (
             <li className="text-sm text-muted">첫 댓글을 남겨보세요.</li>
           )}
-          {comments.map((comment) => (
-            <li
-              key={comment.id}
-              className="rounded-lg border border-border bg-card px-4 py-3"
-            >
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <span>{comment.author}</span>
-                <span>·</span>
-                <time dateTime={comment.created_at}>
-                  {formatDate(comment.created_at)}
-                </time>
-              </div>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">
-                {comment.content}
-              </p>
-            </li>
-          ))}
+          {comments.map((comment) => {
+            const isAi = comment.author === "AI";
+            return (
+              <li
+                key={comment.id}
+                className={`rounded-lg border px-4 py-3 ${
+                  isAi ? "border-accent/30 bg-accent/5" : "border-border bg-card"
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs text-muted">
+                  {isAi ? (
+                    <span className="rounded bg-accent px-1.5 py-0.5 font-medium text-white">
+                      🤖 AI
+                    </span>
+                  ) : (
+                    <span>{comment.author}</span>
+                  )}
+                  <span>·</span>
+                  <time dateTime={comment.created_at}>
+                    {formatDate(comment.created_at)}
+                  </time>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">
+                  {comment.content}
+                </p>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="mt-6">

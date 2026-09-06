@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { createSupabaseClient } from "@/lib/supabase";
 
 const CATEGORY = "매출";
 
@@ -22,16 +21,16 @@ export default function WritePage() {
     setSubmitting(true);
     setError(null);
 
-    const supabase = createSupabaseClient();
-    // 작성자(author)는 전송하지 않음 → DB 기본값 '익명'으로 저장됨
-    const { error } = await supabase.from("posts").insert({
-      title: title.trim(),
-      content: content.trim(),
-      category: CATEGORY,
+    // 작성자는 서버에서 '익명'으로 저장되고, 서버가 AI 댓글도 이어서 생성한다.
+    const res = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: title.trim(), content: content.trim() }),
     });
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? "저장에 실패했습니다.");
       setSubmitting(false);
       return;
     }
